@@ -45,8 +45,14 @@ rtmp2hls/
 
 ### Third-party Libraries
 - FFmpeg: Media processing framework
-- cpp-httplib: HTTP server implementation
-- CSV Parser: Task configuration file parsing
+- cpp-httplib: HTTP server implementation (https://github.com/yhirose/cpp-httplib)
+- CSV Parser: Task configuration file parsing (https://github.com/vincentlaucsb/csv-parser)
+- SRS: Referenced for RTMP/HLS streaming implementation (https://github.com/ossrs/srs/)
+
+This project used some code from these repositories:
+1. cpp-httplib: A C++11 single-file header-only cross platform HTTP/HTTPS library
+2. SRS: A simple, high-efficiency real-time media server
+3. csv-parser: A high-performance CSV parser for modern C++
 
 ---
 
@@ -93,5 +99,11 @@ rtmp2hls/
 
 ### 第三方库
 - FFmpeg：媒体处理框架
-- cpp-httplib：HTTP服务器实现
-- CSV Parser：任务配置文件解析
+- cpp-httplib：HTTP服务器实现 (https://github.com/yhirose/cpp-httplib)
+- CSV Parser：任务配置文件解析 (https://github.com/vincentlaucsb/csv-parser)
+- SRS：参考RTMP/HLS流媒体实现 (https://github.com/ossrs/srs/)
+
+本项目使用了以下开源仓库的部分代码：
+1. cpp-httplib：一个C++11单头文件跨平台HTTP/HTTPS库
+2. SRS：一个简单高效的实时媒体服务器
+3. csv-parser：一个现代C++高性能CSV解析器
