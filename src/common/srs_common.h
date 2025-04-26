@@ -1,5 +1,3 @@
-
-
 #ifndef SRS_COMMON_H
 #define SRS_COMMON_H
 
@@ -58,7 +56,6 @@ static int Fun_error(int err, std::string msg)
 
 
 #define srs_error_wrap(err, str) Fun_error(err,str)
-
 
 
 
@@ -162,4 +159,3 @@ static int Fun_error(int err, std::string msg)
 
 
 #endif
-

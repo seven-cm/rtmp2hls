@@ -1,0 +1,32 @@
+# 编译生成的文件
+*.o
+*.exe
+rtmp2hls
+objs/
+
+# IDE和编辑器生成的文件
+.vs/
+.vscode/
+*.sdf
+*.db
+Debug/
+Release/
+
+# 日志文件
+logs/*
+!logs/.gitkeep
+
+# HLS输出文件
+html/live/*
+!html/live/.gitkeep
+
+# 压缩包
+*.7z
+*.zip
+*.tar.gz
+
+# 系统文件
+.DS_Store
+.Spotlight-V100
+.Trashes
+Thumbs.db

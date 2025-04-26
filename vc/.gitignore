@@ -1,8 +1,0 @@
-.vs
-*/*.o
-.vs
-Release/
-*.db
-*.sdf
-Debug/
-*.exe

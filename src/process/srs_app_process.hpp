@@ -1,6 +1,6 @@
 #pragma once
 
-#include "srs_common.h"
+#include "../common/srs_common.h"
 
 #include <string>
 #include <vector>
