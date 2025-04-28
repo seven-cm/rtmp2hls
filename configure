@@ -11,11 +11,105 @@ check_command() {
 # 检查编译器和必要工具
 check_command g++
 check_command make
+check_command cmake
+check_command curl
+check_command tar
 
 # 创建必要的目录
 mkdir -p objs
 mkdir -p logs
 mkdir -p html/live
+mkdir -p 3rdparty
+
+# 自动检测并处理APR、expat、iconv依赖
+APR_DIR=3rdparty/apr-1.7.5
+APR_UTIL_DIR=3rdparty/apr-util-1.6.3
+APR_INSTALL=3rdparty/apr-install
+EXPAT_VERSION=2.5.0
+ICONV_VERSION=1.17
+
+# 检查APR和APR-util静态库
+if [ ! -f "$APR_INSTALL/lib/libapr-1.a" ] || [ ! -f "$APR_INSTALL/lib/libaprutil-1.a" ]; then
+  echo "检测到APR库缺失，自动下载并编译APR和APR-util..."
+  cd 3rdparty
+  # 下载APR
+  if [ ! -d "apr-1.7.5" ]; then
+    curl -LO https://downloads.apache.org/apr/apr-1.7.5.tar.gz
+    tar -xzf apr-1.7.5.tar.gz
+    rm -f apr-1.7.5.tar.gz
+  fi
+  # 下载APR-util
+  if [ ! -d "apr-util-1.6.3" ]; then
+    curl -LO https://downloads.apache.org/apr/apr-util-1.6.3.tar.gz
+    tar -xzf apr-util-1.6.3.tar.gz
+    rm -f apr-util-1.6.3.tar.gz
+  fi
+  # 编译APR，增加macOS兼容参数和INODE64支持
+  cd apr-1.7.5
+  if [ ! -f "../apr-install/lib/libapr-1.a" ]; then
+    ./configure --prefix="$(pwd)/../apr-install" --enable-static --disable-shared --enable-threads --enable-largefile CPPFLAGS="-D_DARWIN_USE_64_BIT_INODE=1"
+    make -j$(sysctl -n hw.logicalcpu)
+    make install
+  fi
+  cd ../apr-util-1.6.3
+  if [ ! -f "../apr-install/lib/libaprutil-1.a" ]; then
+    ./configure --prefix="$(pwd)/../apr-install" --with-apr="$(pwd)/../apr-install" --with-expat="$(pwd)/../apr-install" --with-iconv="$(pwd)/../apr-install"
+    make -j$(sysctl -n hw.logicalcpu)
+    make install
+  fi
+  cd ../../
+fi
+
+# 检查expat静态库
+if [ ! -f "$APR_INSTALL/lib/libexpat.a" ]; then
+  cd 3rdparty
+  if [ ! -d "expat-$EXPAT_VERSION" ]; then
+    curl -LO https://github.com/libexpat/libexpat/releases/download/R_${EXPAT_VERSION//./_}/expat-$EXPAT_VERSION.tar.gz
+    tar -xzf expat-$EXPAT_VERSION.tar.gz
+    rm -f expat-$EXPAT_VERSION.tar.gz
+  fi
+  cd expat-$EXPAT_VERSION
+  ./configure --prefix="$(pwd)/../apr-install" --enable-static --disable-shared
+  make -j$(sysctl -n hw.logicalcpu)
+  make install
+  cd ../../
+fi
+
+# 检查iconv静态库
+if [ ! -f "$APR_INSTALL/lib/libiconv.a" ]; then
+  cd 3rdparty
+  if [ ! -d "libiconv-$ICONV_VERSION" ]; then
+    curl -LO https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz
+    tar -xzf libiconv-$ICONV_VERSION.tar.gz
+    rm -f libiconv-$ICONV_VERSION.tar.gz
+  fi
+  cd libiconv-$ICONV_VERSION
+  ./configure --prefix="$(pwd)/../apr-install" --enable-static --disable-shared
+  make -j$(sysctl -n hw.logicalcpu)
+  make install
+  cd ../../
+fi
+
+# 下载并编译 log4cxx（使用 CMake）
+cd 3rdparty
+bash fetch_log4cxx.sh
+cd apache-log4cxx-1.3.1
+if [ ! -f ../log4cxx-install/lib/liblog4cxx.a ]; then
+  mkdir -p build && cd build
+  cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$(pwd)/../../log4cxx-install \
+    -DAPR_INCLUDE_DIR=$(pwd)/../../../apr-install/include \
+    -DAPR_LIBRARY=$(pwd)/../../../apr-install/lib/libapr-1.a \
+    -DAPRUTIL_INCLUDE_DIR=$(pwd)/../../../apr-install/include \
+    -DAPRUTIL_LIBRARY=$(pwd)/../../../apr-install/lib/libaprutil-1.a \
+    -DEXPAT_INCLUDE_DIR=$(pwd)/../../../apr-install/include \
+    -DEXPAT_LIBRARY=$(pwd)/../../../apr-install/lib/libexpat.a \
+    -DICONV_INCLUDE_DIR=$(pwd)/../../../apr-install/include \
+    -DICONV_LIBRARY=$(pwd)/../../../apr-install/lib/libiconv.a ..
+  make -j$(nproc)
+  make install
+  cd ..
+fi
+cd ../../
 
 # 生成Makefile
 cat > Makefile << 'EOF'
@@ -25,11 +119,11 @@ XX = g++
 # 编译选项：生成目标文件、调试信息、C++11标准
 CXXFLAGS = -c -g -std=c++11
 
-# 链接库：线程库
-CLIBS = -lpthread
+# 链接库：线程库、log4cxx、APR、APR-util、expat、iconv
+CLIBS = -lpthread -L./3rdparty/log4cxx-install/lib -llog4cxx -L./3rdparty/apr-install/lib -lapr-1 -laprutil-1 -lexpat -liconv
 
 # 包含头文件目录
-INCLUDE_DIRS = -I./src
+INCLUDE_DIRS = -I./src -I./3rdparty/log4cxx-install/include -I./3rdparty/apr-install/include
 
 # 源文件目录
 SRCDIR = src

@@ -5,6 +5,7 @@
 #include "utils/timer.hpp"
 #include "core/proxytaskmgr.h"
 #include "utils/csv.hpp"
+#include "common/logger.h"
 
 using namespace httplib;
 using namespace std;
@@ -96,8 +97,9 @@ int main(int argc, const char **argv) {
     });
 
     // 设置日志处理器
-    svr.set_logger([](const Request &req, const Response &res) { 
-        cout << log(req, res); 
+    svr.set_logger([](const Request &req, const Response &res) {
+        auto logger = MyLogger::getLogger("http");
+        LOG_INFO(logger, log(req, res));
     });
 
     // 设置服务器端口，默认8086

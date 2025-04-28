@@ -4,11 +4,11 @@ XX = g++
 # 编译选项：生成目标文件、调试信息、C++11标准
 CXXFLAGS = -c -g -std=c++11
 
-# 链接库：线程库
-CLIBS = -lpthread
+# 链接库：线程库、log4cxx、APR、APR-util、expat、iconv
+CLIBS = -lpthread -L./3rdparty/log4cxx-install/lib -llog4cxx -L./3rdparty/apr-install/lib -lapr-1 -laprutil-1 -lexpat -liconv
 
 # 包含头文件目录
-INCLUDE_DIRS = -I./src
+INCLUDE_DIRS = -I./src -I./3rdparty/log4cxx-install/include -I./3rdparty/apr-install/include
 
 # 源文件目录
 SRCDIR = src
