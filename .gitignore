@@ -3,6 +3,7 @@
 *.exe
 rtmp2hls
 objs/
+3rdparty/
 
 # IDE和编辑器生成的文件
 .vs/
