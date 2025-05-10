@@ -1,7 +1,6 @@
 #ifndef SRS_COMMON_H
 #define SRS_COMMON_H
 
-
 #ifndef WIN32
 #include <unistd.h>
 
@@ -13,58 +12,56 @@
 #endif
 
 #include <time.h>
+
+#include "common/logger.h"
 #include <string>
 
-static time_t srs_get_system_time()
-{
-	return time(0);
-}
+static time_t srs_get_system_time() { return time(0); }
 
-typedef int  srs_error_t;
+typedef int srs_error_t;
 using srs_utime_t = time_t;
 typedef int pid_t;
 
-enum srs_error {
-	srs_success = 0
+enum srs_error
+{
+    srs_success = 0
 };
 
+// 定义日志级别宏
+#define srs_info(fmt, ...)                          \
+    do                                              \
+    {                                               \
+        auto logger = MyLogger::getDefaultLogger(); \
+        LOG_INFO(logger, fmt, ##__VA_ARGS__);       \
+    } while (0)
 
-#define logprintf( fmt, ...)  do{\
-	printf(fmt,##__VA_ARGS__);\
-	printf("\n");\
-}\
-while(0)
+#define srs_warn(fmt, ...)                          \
+    do                                              \
+    {                                               \
+        auto logger = MyLogger::getDefaultLogger(); \
+        LOG_WARN(logger, fmt, ##__VA_ARGS__);       \
+    } while (0)
 
-
-
-#define srs_info   logprintf
-#define srs_warn   logprintf  
-#define srs_trace  logprintf  
-
+#define srs_trace(fmt, ...)                         \
+    do                                              \
+    {                                               \
+        auto logger = MyLogger::getDefaultLogger(); \
+        LOG_TRACE(logger, fmt, ##__VA_ARGS__);      \
+    } while (0)
 
 // The time unit in ms, for example 100 * SRS_UTIME_MILLISECONDS means 100ms.
 #define SRS_UTIME_MILLISECONDS 1000
 // The time unit in ms, for example 120 * SRS_UTIME_SECONDS means 120s.
-#define SRS_UTIME_SECONDS 1000000LL
-
+#define SRS_UTIME_SECONDS      1000000LL
 
 static int Fun_error(int err, std::string msg)
 {
-	printf("err:%d, msg:%s\n", err, msg.c_str());
-	return err; 
+    auto logger = MyLogger::getDefaultLogger();
+    LOG_ERROR(logger, "err:%d, msg:%s", err, msg.c_str());
+    return err;
 }
 
-
-#define srs_error_wrap(err, str) Fun_error(err,str)
-
-
-
-
-
-
-
-
-
+#define srs_error_wrap(err, str)            Fun_error(err, str)
 
 #define ERROR_ENCODER_FORK                  3028
 #define ERROR_FORK_OPEN_LOG                 3030
@@ -116,7 +113,7 @@ static int Fun_error(int err, std::string msg)
 #define ERROR_SYSTEM_PID_SET_FILE_INFO      1040
 #define ERROR_SYSTEM_FILE_ALREADY_OPENED    1041
 #define ERROR_SYSTEM_FILE_OPENE             1042
-//#define ERROR_SYSTEM_FILE_CLOSE             1043
+// #define ERROR_SYSTEM_FILE_CLOSE             1043
 #define ERROR_SYSTEM_FILE_READ              1044
 #define ERROR_SYSTEM_FILE_WRITE             1045
 #define ERROR_SYSTEM_FILE_EOF               1046
@@ -155,7 +152,5 @@ static int Fun_error(int err, std::string msg)
 #define ERROR_SOCKET_SETREUSEADDR           1079
 #define ERROR_SOCKET_SETCLOSEEXEC           1080
 #define ERROR_SOCKET_ACCEPT                 1081
-
-
 
 #endif
