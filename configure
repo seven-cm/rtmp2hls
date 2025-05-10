@@ -60,35 +60,6 @@ if [ ! -f "$APR_INSTALL/lib/libapr-1.a" ] || [ ! -f "$APR_INSTALL/lib/libaprutil
   cd ../../
 fi
 
-# 检查expat静态库
-if [ ! -f "$APR_INSTALL/lib/libexpat.a" ]; then
-  cd 3rdparty
-  if [ ! -d "expat-$EXPAT_VERSION" ]; then
-    curl -LO https://github.com/libexpat/libexpat/releases/download/R_${EXPAT_VERSION//./_}/expat-$EXPAT_VERSION.tar.gz
-    tar -xzf expat-$EXPAT_VERSION.tar.gz
-    rm -f expat-$EXPAT_VERSION.tar.gz
-  fi
-  cd expat-$EXPAT_VERSION
-  ./configure --prefix="$(pwd)/../apr-install" --enable-static --disable-shared
-  make -j$(sysctl -n hw.logicalcpu)
-  make install
-  cd ../../
-fi
-
-# 检查iconv静态库
-if [ ! -f "$APR_INSTALL/lib/libiconv.a" ]; then
-  cd 3rdparty
-  if [ ! -d "libiconv-$ICONV_VERSION" ]; then
-    curl -LO https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$ICONV_VERSION.tar.gz
-    tar -xzf libiconv-$ICONV_VERSION.tar.gz
-    rm -f libiconv-$ICONV_VERSION.tar.gz
-  fi
-  cd libiconv-$ICONV_VERSION
-  ./configure --prefix="$(pwd)/../apr-install" --enable-static --disable-shared
-  make -j$(sysctl -n hw.logicalcpu)
-  make install
-  cd ../../
-fi
 
 # 下载并编译 log4cxx（使用 CMake）
 cd 3rdparty
