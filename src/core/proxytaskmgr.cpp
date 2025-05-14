@@ -59,7 +59,7 @@ void IngestTask::init(std::string src, std::string dest) {
 
     // 创建HLS输出目录和文件路径
     std::string m3u8_dir = "./html" + dest;
-    std::string m3u8 = m3u8_dir + std::string("/hls.m3s8");
+    std::string m3u8 = m3u8_dir + std::string("/hls.m3u8");
     string cmd = "mkdir -p " + string(m3u8_dir);
     system(cmd.c_str());
 
