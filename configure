@@ -48,52 +48,53 @@ if [ ! -f "$APR_INSTALL/lib/libapr-1.a" ] || [ ! -f "$APR_INSTALL/lib/libaprutil
   cd apr-1.7.5
   if [ ! -f "../apr-install/lib/libapr-1.a" ]; then
     CFLAGS=-fPIC ./configure --prefix="$(pwd)/../apr-install" --enable-static --disable-shared --enable-threads --enable-largefile CPPFLAGS="-D_DARWIN_USE_64_BIT_INODE=1"
-    make -j$(sysctl -n hw.logicalcpu)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      make -j$(sysctl -n hw.logicalcpu)
+    else
+      make -j$(nproc)
+    fi
     make install
   fi
   cd ../apr-util-1.6.3
   if [ ! -f "../apr-install/lib/libaprutil-1.a" ]; then
     CFLAGS=-fPIC ./configure --prefix="$(pwd)/../apr-install" --with-apr="$(pwd)/../apr-install" --with-expat="$(pwd)/../apr-install" --with-iconv="$(pwd)/../apr-install"
-    make -j$(sysctl -n hw.logicalcpu)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      make -j$(sysctl -n hw.logicalcpu)
+    else
+      make -j$(nproc)
+    fi
     make install
   fi
   cd ../../
 fi
 
 
-# 下载并编译 log4cxx（使用 CMake）
-cd 3rdparty
-LOG4CXX_URL="https://downloads.apache.org/logging/log4cxx/1.3.1/apache-log4cxx-1.3.1.tar.gz"
-LOG4CXX_TAR="apache-log4cxx-1.3.1.tar.gz"
-LOG4CXX_DIR="apache-log4cxx-1.3.1"
+# 自动检测并处理log4cxx依赖
+LOG4CXX_DIR=apache-log4cxx-1.3.1
+LOG4CXX_INSTALL=log4cxx-install
 
-# 检查是否已经存在
-if [ -d "$LOG4CXX_DIR" ]; then
-    echo "log4cxx 已经存在，跳过下载。"
-else
-    # 下载
-    echo "正在下载 log4cxx..."
-    curl -LO "$LOG4CXX_URL"
-
-    # 检查下载是否成功
-    if [ $? -ne 0 ]; then
-        echo "下载 log4cxx 失败，请检查网络连接。"
-        exit 1
-    fi
-
-    # 解压
-    echo "正在解压 log4cxx..."
-    tar -xzf "$LOG4CXX_TAR"
-fi
-
-cd $LOG4CXX_DIR
-if [ ! -f ../log4cxx-install/lib/liblog4cxx.a ]; then
+# 检查log4cxx静态库
+if [ ! -f "$LOG4CXX_INSTALL/lib/liblog4cxx.so" ]; then
+  echo "检测到log4cxx库缺失，自动下载并编译log4cxx..."
+  cd 3rdparty
+  # 下载log4cxx
+  if [ ! -d "apache-log4cxx-1.3.1" ]; then
+    curl -LO https://downloads.apache.org/logging/log4cxx/1.3.1/apache-log4cxx-1.3.1.tar.gz
+    tar -xzf apache-log4cxx-1.3.1.tar.gz
+    rm -f apache-log4cxx-1.3.1.tar.gz
+  fi
+  # 编译log4cxx
+  cd apache-log4cxx-1.3.1
   mkdir -p build/log4cxx && cd build/log4cxx
-  cmake -S ../../../$LOG4CXX_DIR -B . -DAPR_STATIC=yes -DAPU_STATIC=yes -DCMAKE_PREFIX_PATH=$(pwd)/../../apr-install -DCMAKE_INSTALL_PREFIX=$(pwd)/../../../log4cxx-install -DCMAKE_BUILD_TYPE=Release
-  cmake --build . --target install
-  cd ..
+  cmake -S ../../../$LOG4CXX_DIR -B . -DAPR_STATIC=yes -DAPU_STATIC=yes -DCMAKE_PREFIX_PATH=$(pwd)/../../../apr-install -DCMAKE_INSTALL_PREFIX=$(pwd)/../../../log4cxx-install -DCMAKE_BUILD_TYPE=Release
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    cmake --build . --target install --parallel $(sysctl -n hw.logicalcpu)
+  else
+    cmake --build . --target install --parallel $(nproc)
+  fi
+  cd ../../../
 fi
-cd ../../
+
 
 # 生成Makefile
 cat > Makefile << 'EOF'
